@@ -1,0 +1,30 @@
+---
+
+- import_tasks: dbconsole_registered.yml
+
+- import_tasks: dbconsole_running.yml
+
+#- name: print collected data (1)
+#  debug: var=oracle_gatherinfo_dbconsole_registered_services
+#  when: oracle_gatherinfo_dbconsole_print_collected_data
+#  tags:
+#    - oracle_gatherinfo_dbconsole_print_collected_data
+
+- name: print collected data (1)
+  debug: var=oracle_dbconsole_registered_services
+  when: oracle_gatherinfo_dbconsole_print_collected_data
+  tags:
+    - oracle_gatherinfo_dbconsole_print_collected_data
+
+#- name: print collected data (2)
+#  debug: var=oracle_gatherinfo_dbconsole_running_services
+#  when: oracle_gatherinfo_dbconsole_print_collected_data
+#  tags:
+#    - oracle_gatherinfo_dbconsole_print_collected_data
+
+- name: print collected data (2)
+  debug: var=oracle_dbconsole_running_services
+  when: oracle_gatherinfo_dbconsole_print_collected_data
+  tags:
+    - oracle_gatherinfo_dbconsole_print_collected_data
+

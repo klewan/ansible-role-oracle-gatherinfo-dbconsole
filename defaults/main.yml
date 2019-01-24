@@ -1,0 +1,31 @@
+---
+
+# collect data about DB console services registered in GI OHAS
+oracle_gatherinfo_dbconsole_from_gi_registry: true
+
+# List describing DB console services registered in GI OHAS - Oracle High Availability Services (dynamically populated)
+oracle_gatherinfo_dbconsole_registered_services: []
+
+# e.g.:
+#oracle_gatherinfo_dbconsole_registered_services:
+#  dbconsole_resource_name: "dbconsole.orcl"
+#  oracle_home: "/u01/app/oracle/product/11.2.0.4/dbhome1"
+#  oracle_hostname: "dbserver1.foo.com"
+#  oracle_sid: "ORCL"
+#  state: "ONLINE"
+
+
+# collect data about active/running DB console services
+oracle_gatherinfo_dbconsole_running: true
+
+# List describing active/running DB console services
+oracle_gatherinfo_dbconsole_running_services: []
+
+# e.g.:
+#oracle_gatherinfo_dbconsole_running_services:
+#  instance_name: "ORCL"
+#  oracle_home: "/u01/app/oracle/product/11.2.0.4/dbhome1"
+
+# print collected information about dbconsole services
+oracle_gatherinfo_dbconsole_print_collected_data: true
+

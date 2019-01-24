@@ -1,0 +1,35 @@
+---
+
+- name: collect information about active/running db console services
+  shell: |
+    ps -eaf | grep dbconsole | grep -v grep | perl -ne'print "$1\=$2\n" if m/.+dbconsole\s+(.+)\/.+_(\w+)/;'
+  ignore_errors: yes
+  register: _oracle_gatherinfo_dbconsole_running_dbconsole_info_shell
+  check_mode: no
+  when: oracle_gatherinfo_dbconsole_running
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_running_dbconsole_info
+
+- name: active/running dbconsole services - set variables (1)
+  set_fact:
+    oracle_gatherinfo_dbconsole_running_console_item: "{{ oracle_gatherinfo_dbconsole_running_console_item|default({}) | combine( { 'oracle_home': item | regex_replace('^([^=]+).*$', '\\1' ) } ) | combine( { 'instance_name': item | regex_replace('^[^=]+=+([^=]+).*$', '\\1' ) } ) }}"
+  with_items:
+    - "{{ _oracle_gatherinfo_dbconsole_running_dbconsole_info_shell.stdout_lines }}"
+  loop_control:
+    label: "[gathering facts about dbconsole: {{ item | regex_replace('^[^=]+=+([^=]+).*$', '\\1' ) }}]"
+  register: _oracle_gatherinfo_dbconsole_running_dbconsole_info_list
+  when: oracle_gatherinfo_dbconsole_running and _oracle_gatherinfo_dbconsole_running_dbconsole_info_shell != ""
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_running_dbconsole_info
+
+- name: active/running dbconsole services - set variables (2)
+  set_fact:
+    oracle_gatherinfo_dbconsole_running_services: "{{ oracle_gatherinfo_dbconsole_running_services + [ item.ansible_facts.oracle_gatherinfo_dbconsole_running_console_item ] }}"
+  with_items:
+    - "{{ _oracle_gatherinfo_dbconsole_running_dbconsole_info_list.results|default([],true) }}"
+  loop_control:
+    label: "[gathering facts about dbconsole: {{ item.item|default('',true) | regex_replace('^[^=]+=+([^=]+).*$', '\\1' ) }}]"
+  when: oracle_gatherinfo_dbconsole_running and _oracle_gatherinfo_dbconsole_running_dbconsole_info_shell != ""
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_running_dbconsole_info
+

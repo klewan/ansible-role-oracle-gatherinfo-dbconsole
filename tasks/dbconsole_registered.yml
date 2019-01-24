@@ -1,0 +1,44 @@
+---
+
+- name: assert that GRID_HOME is not empty
+  assert:
+    that:
+      - "oracle_gi_info.oracle_home|default('', true)|length > 0"
+    fail_msg: "'oracle_gi_info.oracle_home' must not be empty"
+  when: oracle_gatherinfo_dbconsole_from_gi_registry
+  tags:
+    - oracle_gatherinfo_dbconsole_precheck
+
+- name: collect db console information from Grid Infrastructure registry
+  shell: |
+    {{ oracle_gi_info.oracle_home }}/bin/crsctl status resource -w "START_PROGRAM co dbconsole" -f | egrep '^NAME=|^ENVIRONMENT_VARS=|^STATE=' | paste -d " " - - - | sed 's/ENVIRONMENT_VARS=//g' | sed 's/ /,/g'
+    echo
+  register: _oracle_gatherinfo_dbconsole_registered_dbconsole_info_shell
+  check_mode: no
+  when: oracle_gatherinfo_dbconsole_from_gi_registry
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_registered_dbconsole_info
+
+- name: registered dbconsole services - set variables (1)
+  set_fact:
+    oracle_gatherinfo_dbconsole_console_item: "{{ oracle_gatherinfo_dbconsole_console_item|default({}) | combine( { 'dbconsole_resource_name': item | regex_replace('^NAME=([^,]+).*$', '\\1' ) } ) | combine( { 'oracle_home': item | regex_replace('.*ORACLE_HOME=([^,]+).*$', '\\1' ) } ) | combine( { 'oracle_sid': item | regex_replace('.*ORACLE_SID=([^,]+).*$', '\\1' ) } ) | combine( { 'oracle_hostname': item | regex_replace('.*ORACLE_HOSTNAME=([^,]+).*$', '\\1' ) } ) | combine( { 'state': item | regex_replace('.*STATE=([^,]+).*$', '\\1' ) } ) }}"
+  with_items:
+    - "{{ _oracle_gatherinfo_dbconsole_registered_dbconsole_info_shell.stdout_lines }}"
+  loop_control:
+    label: "[gathering facts about dbconsole: {{ item | regex_replace('^NAME=([^,]+).*$', '\\1' ) }}]"
+  register: _oracle_gatherinfo_dbconsole_registered_dbconsole_info_list
+  when: oracle_gatherinfo_dbconsole_from_gi_registry and _oracle_gatherinfo_dbconsole_registered_dbconsole_info_shell != ""
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_registered_dbconsole_info
+
+- name: registered dbconsole services - set variables (2)
+  set_fact:
+    oracle_gatherinfo_dbconsole_registered_services: "{{ oracle_gatherinfo_dbconsole_registered_services + [ item.ansible_facts.oracle_gatherinfo_dbconsole_console_item ] }}"
+  with_items:
+    - "{{ _oracle_gatherinfo_dbconsole_registered_dbconsole_info_list.results|default([],true) }}"
+  loop_control:
+    label: "[gathering facts about dbconsole: {{ item.item|default('',true) | regex_replace('^NAME=([^,]+).*$', '\\1' ) }}]"
+  when: oracle_gatherinfo_dbconsole_from_gi_registry and _oracle_gatherinfo_dbconsole_registered_dbconsole_info_shell != ""
+  tags:
+    - oracle_gatherinfo_dbconsole_collect_registered_dbconsole_info
+
